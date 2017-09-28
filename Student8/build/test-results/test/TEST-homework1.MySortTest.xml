@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="homework1.MySortTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2017-09-28T17:41:32" hostname="ethan-VirtualBox" time="0.007">
+  <properties/>
+  <testcase name="testSingleElement" classname="homework1.MySortTest" time="0.004"/>
+  <testcase name="testPermutation" classname="homework1.MySortTest" time="0.0"/>
+  <testcase name="testEmpty" classname="homework1.MySortTest" time="0.0"/>
+  <testcase name="testNull" classname="homework1.MySortTest" time="0.0"/>
+  <testcase name="testPositive" classname="homework1.MySortTest" time="0.0"/>
+  <testcase name="testNegative" classname="homework1.MySortTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

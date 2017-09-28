@@ -1,0 +1,122 @@
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+
+// Apply the application plugin to add support for building an application
+apply plugin: 'application'
+
+repositories {
+    mavenCentral()
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+
+def workspace = zipTree('Workspace.zip')
+def homeworkSortFiles = workspace.matching {
+    include '**/*.java'
+    exclude '**/*Test.java'
+    exclude '**/*ISort.java'
+}
+def homeworkTestFiles = workspace.matching {
+    include '**/*Test.java'
+}
+def resourcesFiles = workspace.matching {
+    include '**/ISort.java'
+}
+
+task setupAPI(type: Copy) { 
+
+    from(resourcesFiles.files) {
+        into('SortingAPI/src/main/java/sorting')
+    }
+    into('.')
+    doLast   {
+        new File('SortingAPI', 'build.gradle').withWriterAppend { w ->
+            w << "\n"
+            w << "apply plugin: \'java\'\n"
+            w << "apply plugin: \'application\'\n"
+            w << "mainClassName = \'ISort'\n"
+        }
+        new File('SortingAPI', 'settings.gradle').withWriterAppend { w ->
+            w << "\n"
+        }
+        new File('settings.gradle').withWriterAppend { w ->
+            w << "include \":SortingAPI\"\n"
+        }
+    }
+}
+
+
+task setupGrading(type: Copy) {
+    dependsOn setupAPI
+    homeworkSortFiles.eachWithIndex { file, index ->
+        from(file) {
+            into('Student' + (index + 1) + '/src/main/java/homework1')
+        }
+    }
+    homeworkTestFiles.eachWithIndex { file, index ->
+        from(file) {
+            into('Student' + (index + 1) + '/src/test/java/homework1')
+        }
+    }
+    
+    into('.')
+
+    doLast {
+        for (def i = 0; i < homeworkSortFiles.size(); i++) {
+            new File('Student' + (i + 1), 'build.gradle').withWriterAppend { w ->
+                w << "\n"
+                w << "apply plugin: \'java\'\n"
+                w << "apply plugin: \'application\'\n"
+                w << "dependencies {\n"
+                w << "\t compile project(\":SortingAPI\")\n"
+                w << "\t testCompile \"junit:junit:4.12\"\n"
+                w << "}\n"
+                w << "test {\n"
+                w << "\t ignoreFailures = true\n"
+                w << "\t testLogging {\n"
+                w << "\t\t afterSuite { desc, result ->\n"
+                w << "\t\t\t if(!desc.parent) {\n"
+                w << "\t\t\t\t new File(\"\${projectDir}/../build/report/grading.csv\").withWriterAppend { w ->\n"
+                w << "\t\t\t\t\t w << project.name + \", \${result.testCount}, \${result.successfulTestCount}, \${result.failedTestCount}\\n\"\n"
+                w << "\t\t\t\t }\n"
+                w << "\t\t\t }\n"
+                w << "\t\t }\n"
+                w << "\t }\n"
+                w << "}\n"
+                w << "mainClassName = \'MySort'\n"
+            }
+            new File('Student' + (i + 1), 'settings.gradle').withWriterAppend { w ->
+                w << "include \":SortingAPI\"\n"
+                w << "project(\":SortingAPI\").projectDir = file(\"../SortingAPI\")\n"
+            }
+            new File('settings.gradle').withWriterAppend { w ->
+                w << "include \":Student" + (i+1) + "\"\n"
+            }
+        }
+    }
+}
+
+task generateCSV {
+    doLast {
+        def reportDirs = new File('build/report')
+        reportDirs.mkdirs()
+        new File("build/report/grading.csv").withWriterAppend {w -> 
+            w << "Project, Total Tests, Tests Passed, Tests Failed\n"
+        }
+    }
+}
+
+task generateReport {
+    dependsOn generateCSV
+    doLast {
+        println "Report generated!"
+    }
+}
+subprojects.each { p ->
+    generateReport.dependsOn("${p.name}:test")
+}

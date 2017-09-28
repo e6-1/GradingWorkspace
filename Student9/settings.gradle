@@ -1,0 +1,2 @@
+include ":SortingAPI"
+project(":SortingAPI").projectDir = file("../SortingAPI")

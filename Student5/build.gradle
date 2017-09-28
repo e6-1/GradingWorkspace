@@ -1,0 +1,20 @@
+
+apply plugin: 'java'
+apply plugin: 'application'
+dependencies {
+	 compile project(":SortingAPI")
+	 testCompile "junit:junit:4.12"
+}
+test {
+	 ignoreFailures = true
+	 testLogging {
+		 afterSuite { desc, result ->
+			 if(!desc.parent) {
+				 new File("${projectDir}/../build/report/grading.csv").withWriterAppend { w ->
+					 w << project.name + ", ${result.testCount}, ${result.successfulTestCount}, ${result.failedTestCount}\n"
+				 }
+			 }
+		 }
+	 }
+}
+mainClassName = 'MySort'
